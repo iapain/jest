@@ -153,6 +153,20 @@ var Api = module.exports = Class.extend({
             resource.update(req, res);
         });
 
+        if (resource.allow_post_for_put) {
+            this.app.post('/' + resource.path + '/:id/update', function(req, res){
+                req._id = req.params.id;
+                resource.update(req, res);
+            });
+        }
+
+        if (resource.allow_post_for_delete) {
+            this.app.post('/' + resource.path + '/:id/delete', function(req, res){
+                req._id = req.params.id;
+                resource.destroy(req, res);
+            })
+        }
+
     },
     //Alias for register -Backword Compability
     register_resource:function () {

@@ -44,6 +44,10 @@ var Resource = module.exports = Class.extend({
         this.max_limit = null;
 		// TBD
 		this.strict = false;
+        // Use POST for PUT (useful when for IE 8/9)
+        this.allow_post_for_put = false
+        // USE POST for DELETE
+        this.allow_post_for_delete = false
     },
 
     /**
