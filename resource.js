@@ -6,10 +6,12 @@ var _ = require('underscore'),
     Throttling = require('./throttling'),
     Validation = require('./validation');
 
-var NotImplemented = Class.extend({
-    init:function () {
-    }
-});
+var NotImplemented = function(){
+    Error.call(this, 'Method not implemented', 865);
+};
+NotImplemented.prototype = new Error();
+NotImplemented.prototype.constructor = NotImplemented;
+NotImplemented.prototype.name = 'NotImplemented';
 
 var Resource = module.exports = Class.extend({
     /**
@@ -186,6 +188,24 @@ var Resource = module.exports = Class.extend({
 
                     // get request fields, parse & limit them
                     var fields = self.hydrate(req.body,self.get_update_tree(req), self.get_update_exclude_tree(req));
+
+                    // Use edit object if exists
+                    if(self.edit_obj){
+                        self.edit_obj(req,object,fields,function(err,object){
+                            if (err)
+                                callback(err);
+                            else {
+                                // save to cache, this time wait for response
+                                self.cache.set(self.build_cache_key(req._id), object, function (err) {
+                                    if (err) callback(err);
+                                    else callback(null, object);
+                                });
+                            }
+                        });
+                        return;
+                    }
+
+                    // if not, set values yourself
 
                     self.setValues(object,fields);
 
@@ -461,16 +481,10 @@ var Resource = module.exports = Class.extend({
     },
 
     deserializeJsonp: function(req,res,object,status) {
-        var callback = req.query.callback || req.body.callback;
-        if(!callback){
-            res.send('you must specify callback function',400);
-            return;
-        }
-
         res.header('Cache-Control','no-cache');
         res.header('Pragma','no-cache');
         res.header('Expires','-1');
-        res.write(callback + '(' + JSON.stringify(object) + ')', status);
+        res.jsonp(object, status);
     },
 
     deserializeJson : function(req,res,object,status) {
@@ -489,15 +503,17 @@ var Resource = module.exports = Class.extend({
      * @param object
      * @param status
      */
-    deserialize:function (req, res, object, status,format) {
-
+    deserialize:function (req, res, object, status) {
         // TODO negotiate response content type
+        // Check if callback is defined. If so then respond jsonp
+        var callback = (req.query && req.query.callback) || (req.body && req.body.callback);
 
-        if(format == 'jsonp') {
-            this.deserializeJsonp(req,res,object,status);
+        if(callback) {
+            this.deserializeJsonp(req, res, object, status);
             return;
         }
-        this.deserializeJson(req,res,object,status);
+
+        this.deserializeJson(req, res, object, status);
 
     },
 
@@ -510,7 +526,6 @@ var Resource = module.exports = Class.extend({
      */
     dispatch:function (req, res, main_func) {
         var self = this;
-        var format = (req.query && req.query.format) || (req.body && req.body.format);
         // check if method is allowed
         var method = req.method.toLowerCase();
         var allowed_methods = self.get_allowed_methods_tree();
@@ -609,7 +624,7 @@ var Resource = module.exports = Class.extend({
                                     break;
                             }
                             // send response
-                            self.deserialize(req, res, response_obj, status,format);
+                            self.deserialize(req, res, response_obj, status);
                         });
                     });
 
