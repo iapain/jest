@@ -14,7 +14,7 @@
     }
   ],
   "dependencies": {
-    "underscore": "",
+    "underscore": "1.5.1",
     "sji": ""
   },
   "devDependencies": {
