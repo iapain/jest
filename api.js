@@ -78,10 +78,10 @@ var Api = module.exports = Class.extend({
             filtering : _.map(resource.filtering || {},function(value,key)
             {
                 var filtering_field = { field : key };
-                if(value && typeof(value) === "object") {
-                    filtering_field.usages = _.map(value,function(value2,operand)
+                if(value !== null && typeof(value) === "object") {
+                    filtering_field.usages = _.map(value, function(value2, operand)
                     {
-                        var operand_str = operand == 'exact' ? '' : '__' + operand;
+                        var operand_str = operand === 'exact' ? '' : '__' + operand;
                         return resource.path + '?' + key + operand_str + '=' + self.default_value_per_operand(operand);
                     });
                 }
