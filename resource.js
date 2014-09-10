@@ -313,10 +313,16 @@ var Resource = module.exports = Class.extend({
      * @param message
      */
     unauthorized:function (res, message) {
-        if (message)
+        if (message) {
+          if (typeof message === "object") {
             res.status(401).json(message);
-        else
+          } else {
+            res.status(401).send(message);
+          }
+        }
+        else {
             res.status(401);
+        }
     },
 
     /**
@@ -551,7 +557,7 @@ var Resource = module.exports = Class.extend({
                 self.internal_error(err, req, res);
             else {
                 if (!is_auth) {
-                    self.unauthorized(res,{'error':'Not authenticated'});
+                    self.unauthorized(res, {'error':'Not authenticated'});
                     return;
                 }
 
