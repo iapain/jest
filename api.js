@@ -1,5 +1,5 @@
 var _ = require('lodash'),
-    Class = require('sji');
+    Class = require('./sji');
 
 var Api = module.exports = Class.extend({
     init:function (path, app) {

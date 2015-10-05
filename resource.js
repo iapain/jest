@@ -1,5 +1,5 @@
 var _ = require('lodash'),
-    Class = require('sji'),
+    Class = require('./sji'),
     Authentication = require('./authentication'),
     Authorization = require('./authorization'),
     Cache = require('./cache'),

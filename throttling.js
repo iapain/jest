@@ -1,4 +1,4 @@
-var Class = require('sji');
+var Class = require('./sji');
 
 var Throttling = module.exports = Class.extend({
     init:function () {

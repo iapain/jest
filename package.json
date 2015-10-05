@@ -14,8 +14,7 @@
     }
   ],
   "dependencies": {
-    "lodash": "^3.0.0",
-    "sji": "0.0.1"
+    "lodash": "^3.0.0"
   },
   "devDependencies": {
     "express": "",
