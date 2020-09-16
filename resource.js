@@ -314,9 +314,9 @@ var Resource = module.exports = Class.extend({
      */
     unauthorized:function (res, message) {
         if (message)
-            res.send(message, 401);
+            res.status(401).send(message);
         else
-            res.send(401);
+            res.status(401);
     },
 
     /**
