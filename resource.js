@@ -326,7 +326,7 @@ var Resource = module.exports = Class.extend({
      * @param json
      */
     bad_request:function (res, json) {
-        res.json(json.message || json, 400);
+        res.status(400).json(json.message || json);
     },
 
     /**
@@ -484,14 +484,14 @@ var Resource = module.exports = Class.extend({
         res.header('Cache-Control','no-cache');
         res.header('Pragma','no-cache');
         res.header('Expires','-1');
-        res.jsonp(object, status);
+        res.status(status).jsonp(object);
     },
 
     deserializeJson : function(req,res,object,status) {
         res.header('Cache-Control','no-cache');
         res.header('Pragma','no-cache');
         res.header('Expires','-1');
-        res.json(object, status);
+        res.status(status).json(object);
     },
 
 
@@ -590,10 +590,10 @@ var Resource = module.exports = Class.extend({
                                         self.unauthorized(res, err.message);
                                     }
                                     else if (err.message && err.message.match(/duplicate key/gi)) {
-                                        res.json(err.message, 400);
+                                        res.status(400).json(err.message);
                                     }
                                     else {
-                                        res.json(err.message, err.code);
+                                        res.status(err.code).json(err.message);
                                     }
                                 }
                                 else {
