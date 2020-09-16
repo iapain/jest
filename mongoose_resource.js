@@ -1,4 +1,4 @@
-var _ = require('underscore'),
+var _ = require('lodash'),
     Class = require('sji'),
     Resource = require('./resource');
     Validation = require('./mongoose_validation');
@@ -90,21 +90,21 @@ var MongooseResource = module.exports = Resource.extend({
                 if(self.model.schema.paths[query_key])
                 {
                     if(self.model.schema.paths[query_key].options.type == Boolean)
-                        query_value = query_value.toLowerCase().trim() == 'true';
+                        query_value = typeof(query_value) == 'string' ? query_value.toLowerCase().trim() == 'true' : !!query_value;
                     if(self.model.schema.paths[query_key].options.type == Number)
-                        query_value = Number(query_value.trim());
+                        query_value = typeof(query_value) == 'string' ? Number(query_value.trim()) : Number(query_value);
                 }
                 if(query_op)
                 {
                     if(query_op == 'maxDistance')
                         query_value = Number(query_value);
                     query.where(query_key)[query_op](query_value);
-                    count_query.where(query_key)[query_op](query_value);
+                    //count_query.where(query_key)[query_op](query_value);
                 }
                 else
                 {
                     query.where(query_key, query_value);
-                    count_query.where(query_key, query_value);
+                    //count_query.where(query_key, query_value);
                 }
             }
         }
@@ -127,8 +127,10 @@ var MongooseResource = module.exports = Resource.extend({
         for(var i=0; i<default_sort.length; i++)
             query.options.sort.push(default_sort[i]);
 
-        query.limit(limit);
-        query.skip(offset);
+        if(limit > 0)
+            query.limit(limit);
+        if(offset > 0)
+            query.skip(offset);
 
         var results = null, count = null;
 
@@ -147,20 +149,21 @@ var MongooseResource = module.exports = Resource.extend({
         }
 
         self.authorization.limit_object_list(req, query, function (err, query) {
-            if (err) callback(err);
-            else
-                self.run_query(req,query,function (err, objects) {
-                    if (err) callback(err);
-                    else {
-                        results = objects;
-                        on_finish();
-                    }
-                });
-        });
+            if (err) return callback(err);
 
-        self.authorization.limit_object_list(req, count_query, function (err, count_query) {
-            if (err) callback(err);
-            else
+            for(var key in query._conditions){
+                count_query._conditions[key] = query._conditions[key];
+            }
+            self.run_query(req,query,function (err, objects,counter) {
+                if (err) callback(err);
+                else {
+                    results = objects;
+                    if(!(limit > 0))
+                        count = counter || objects.length;
+                    on_finish();
+                }
+            });
+            if(limit > 0) {
                 self.run_query(req,count_query,function (err, counter) {
                     if (err) callback(err);
                     else {
@@ -168,7 +171,13 @@ var MongooseResource = module.exports = Resource.extend({
                         on_finish();
                     }
                 });
+            }
         });
+
+//        self.authorization.limit_object_list(req, count_query, function (err, count_query) {
+//            if (err) callback(err);
+//            else
+//        });
     },
 
     create_obj:function (req, fields, callback) {
